@@ -1,0 +1,20 @@
+.login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.loginText {
+    font-size: 16px;
+    padding-bottom: 10px;
+}
+
+.loginInput {
+    margin-bottom: 10px;
+}
+
+.loginForm {
+    text-align: center;
+}
