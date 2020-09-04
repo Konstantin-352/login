@@ -1,10 +1,3 @@
-// import React from 'react';
-// export default async function serverRequest(url ='', method='', data = {}, token = '') {
-//
-//
-//
-// }
-
 export default class ServerRequest {
     constructor(url) {
         this.url = url;
@@ -18,23 +11,29 @@ export default class ServerRequest {
         return this;
     }
 
-    addAutorization(token) {
+    addAutorization(type, token) {
         this.data.headers = {
             ...this.data.headers,
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `${type} ${token}`,
         };
         return this;
     }
 
     addBody(data) {
         this.data.body = JSON.stringify(data);
+
         return this;
     }
 
     async request() {
-        const response = await fetch(this.url, {
-            ...this.data,
-        });
-        return await response.json();
+        try {
+            const response = await fetch(this.url, {
+                ...this.data,
+            });
+            return await response.json();
+        } catch (e) {
+            console.log(e);
+        }
+
     }
 }

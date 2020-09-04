@@ -1,13 +1,28 @@
-import React, {useState} from 'react';
+import React from 'react';
 import './App.css';
 import Login from "./components/login/Login";
 import Profile from "./components/profile/Profile";
+import PrivateRoute from './components/privateRoute/PrivateRoute'
+import {Switch} from "react-router-dom";
+import {connect} from "react-redux";
 
-function App() {
-    const [isLogged, setLogged] = useState(false);
-    const [token, setToken] = useState(null);
-    // debugger;
-    return (isLogged ? <Profile token={token} setLogged={setLogged}/> : <Login setLogged={setLogged} setToken={setToken}/>);
+function App({token}) {
+    const isLogged = () => !!token;
+
+    return (
+        <Switch>
+            <PrivateRoute exact path='/' authed={!isLogged()} redirect='/profile'>
+                <Login />
+            </PrivateRoute>
+            <PrivateRoute exact path='/profile' authed={isLogged()} redirect='/'>
+                <Profile token={token}/>
+            </PrivateRoute>
+        </Switch>
+    );
 }
 
-export default App;
+const mapStateToProsp = state => ({
+    token: state.authorization.token.accessToken
+});
+
+export default connect(mapStateToProsp)(App);

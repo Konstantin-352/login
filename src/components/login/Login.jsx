@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import s from './Login.module.css';
 import {Formik, Form, Field, ErrorMessage} from 'formik';
-import ServerRequest from "../serverRequest/ServerRequest";
+import {connect} from "react-redux";
+import {setTokenAC} from "../../redux/authorizationReducer";
 
-const Login = ({setLogged, setToken}) => {
-    const [isAuth, setAuth] = useState(true);
+const Login = ({setToken, errorToken}) => {
 
     return (
         <div className={s.login}>
@@ -26,26 +26,15 @@ const Login = ({setLogged, setToken}) => {
                     }
                     return errors;
                 }}
-                onSubmit={(values) => {
-                    (new ServerRequest('https://tager.dev.ozitag.com/api/auth/user'))
-                        .addMethod('POST')
-                        .addBody({...values, clientId: 1})
-                        .request()
-                        .then((result) => {
-                            if (result.data && result.data.accessToken) {
-                                setToken(result.data.accessToken);
-                                setLogged(true);
-                                setAuth(true);
-                            }
-
-                            if(result.errors) {
-                                setAuth(false);
-                            }
-                        });
+                onSubmit={(values, actions) => {
+                    setToken({...values, clientId: 1});
+                    actions.setSubmitting(false);
                 }}
             >
                 {({isSubmitting}) => (
+
                     <Form className={s.loginForm}>
+                        <div>{isSubmitting}</div>
                         <div className={s.loginText}>Логин</div>
                         <div>
                             <Field type="email" name="email" className={s.loginInput}/>
@@ -56,8 +45,8 @@ const Login = ({setLogged, setToken}) => {
                             <Field type="password" name="password" className={s.loginInput}/>
                         </div>
                         <ErrorMessage name="password" component="div" className={s.loginText}/>
-                        {!isAuth ? <div>Введены не верные данные</div> : ''}
-                        <button>
+                        {errorToken ? <div className={s.loginText}>{errorToken}</div> : ''}
+                        <button type='submit'>
                             Войти
                         </button>
                     </Form>
@@ -67,4 +56,11 @@ const Login = ({setLogged, setToken}) => {
     )
 };
 
-export default Login;
+const mapStateToProps = state => ({
+    errorToken: state.authorization.token.error,
+});
+
+const mapDispatchToProps = dispatch => ({
+    setToken: data => dispatch(setTokenAC(data))
+});
+export default connect(mapStateToProps, mapDispatchToProps)(Login);
