@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {connect} from "react-redux";
-import {logoutUserAC, setUserAC} from "../../redux/authorizationReducer";
+import {logoutUserThunk, setUserThunk} from "../../redux/authorizationReducer";
 
 const Profile = ({name, email, tokenType, accessToken, setUser, logoutUser}) => {
     useEffect(() => {
@@ -32,8 +32,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    setUser: (tokenType, token) => dispatch(setUserAC(tokenType, token)),
-    logoutUser: (tokenType, token) => dispatch(logoutUserAC(tokenType, token)),
+    setUser: (tokenType, token) => dispatch(setUserThunk(tokenType, token)),
+    logoutUser: (tokenType, token) => dispatch(logoutUserThunk(tokenType, token)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Profile);

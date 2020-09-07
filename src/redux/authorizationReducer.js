@@ -5,7 +5,7 @@ export const ERROR_TOKEN = 'ERROR_TOKEN';
 export const SET_USER = 'SET_USER';
 export const LOGOUT_USER = 'LOGOUT_USER';
 
-let token = JSON.parse(localStorage.getItem('token') || {}) || {};
+let token = JSON.parse(localStorage.getItem('token')) || {};
 
 const initialState = {
     token: {
@@ -24,9 +24,9 @@ const initialState = {
 export const authoriztionReducer = (state = initialState, action) => {
     switch (action.type) {
         case SET_TOKEN:
-            return {...state, token: {...state.token, ...action.token, error: null}};
+            return {...state, token: {...state.token, ...action.payload, error: null}};
         case SET_USER:
-            return {...state, user: {...state.user, ...action.user}};
+            return {...state, user: {...state.user, ...action.payload}};
         case LOGOUT_USER:
             return {
                 ...state,
@@ -34,13 +34,23 @@ export const authoriztionReducer = (state = initialState, action) => {
                 token: {tokenType: null, expiresAt: null, accessToken: null, refreshToken: null}
             };
         case ERROR_TOKEN:
-            return {...state, token: {...state.token, error: action.error}};
+            return {...state, token: {...state.token, error: action.payload}};
         default:
             return state
     }
 };
 
-export const setTokenAC = (data) => {
+export const setTokenAC = payload => ({
+    type: SET_TOKEN,
+    payload
+});
+
+export const errorTokenAC = error => ({
+   type: ERROR_TOKEN,
+   payload: error
+});
+
+export const setTokenThunk = data => {
     return async dispatch => {
         try {
             const result = await (new ServerRequest('https://tager.dev.ozitag.com/api/auth/user'))
@@ -48,13 +58,13 @@ export const setTokenAC = (data) => {
                 .addBody(data)
                 .request();
             if (result.data && result.data.accessToken) {
-                dispatch({type: SET_TOKEN, token: result.data});
+                dispatch(setTokenAC(result.data));
                 localStorage.setItem('token', JSON.stringify(result.data));
             }
 
             if (result.errors) {
-                result.errors.password && dispatch({type: ERROR_TOKEN, error: result.errors.password.message});
-                result.errors.email && dispatch({type: ERROR_TOKEN, error: result.errors.email.message})
+                result.errors.password && dispatch(errorTokenAC(result.errors.password.message));
+                result.errors.email && dispatch(errorTokenAC(result.errors.email.message));
             }
         } catch (e) {
             console.log(e);
@@ -64,27 +74,36 @@ export const setTokenAC = (data) => {
     }
 };
 
-export const setUserAC = (type, token) => {
+export const setUserAC = user => ({
+    type: SET_USER,
+    payload: user
+});
+
+export const setUserThunk = (type, token) => {
     return async dispatch => {
         const result = await (new ServerRequest('https://tager.dev.ozitag.com/api/user/profile'))
             .addMethod('GET')
             .addAutorization(type, token)
             .request();
         if (result.data) {
-            dispatch({type: SET_USER, user: result.data})
+            dispatch(setUserAC(result.data))
         }
     }
 };
 
-export const logoutUserAC = (tokenType, token) => {
+export const logoutUserAC = () => ({
+    type: LOGOUT_USER
+});
+
+export const logoutUserThunk = (tokenType, token) => {
     return async dispatch => {
         const result = await (new ServerRequest('https://tager.dev.ozitag.com/api/user/profile/logout'))
             .addMethod('POST')
             .addAutorization(tokenType, token)
             .request();
         if (result.success) {
-            dispatch({type: LOGOUT_USER, token});
+            dispatch(logoutUserAC());
             localStorage.removeItem('token');
         }
     }
-}
+};
